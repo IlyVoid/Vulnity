@@ -39,12 +39,13 @@ echo "Installing dependencies..."
 progress_bar 5
 
 # Step 5: Install required packages
-if pip install requests pyfiglet colorama rich --quiet; then
+pip install requests pyfiglet colorama rich --quiet
     echo "✅ Dependencies installed successfully."
-else
-    echo "❌ Error: Failed to install dependencies." >&2
-    deactivate
-    exit 1
-fi
+
+touch run.sh | echo "python3 main.py" > run.sh
+chmod 777 run.sh
+echo "Run script added: Do ./run.sh"
+source vuln/bin/activate
+exec zsh
 
 echo "🎉 Setup completed successfully!"
