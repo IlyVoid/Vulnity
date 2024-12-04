@@ -1,42 +1,50 @@
-#!/bin/bash
+#!/bin/zsh
 
-# Set up a hidden virtual environment in the home directory
-VENV_DIR="$HOME/.Vuln"
+# Function to display a progress bar
+progress_bar() {
+    local duration=$1
+    for ((i=0; i<=100; i+=2)); do
+        printf "\r[%-50s] %d%%" "$(printf '#%.0s' $(seq 1 $((i / 2))))" "$i"
+        sleep $((duration / 50))
+    done
+    echo
+}
 
-# Check for Python3
-if ! command -v python3 &>/dev/null; then
-    echo "Python3 not found. Install it and try again."
+echo "Setting up Python virtual environment..."
+
+# Step 1: Create a virtual environment
+if python3 -m venv vuln; then
+    echo "✅ Virtual environment created successfully."
+else
+    echo "❌ Error: Failed to create a virtual environment." >&2
     exit 1
 fi
 
-# Create a hidden virtual environment if it doesn’t exist
-if [ ! -d "$VENV_DIR" ]; then
-    echo "Creating a hidden virtual environment in $VENV_DIR..."
-    python3 -m venv "$VENV_DIR"
+# Step 2: Activate the virtual environment
+source vuln/bin/activate
+echo "✅ Virtual environment activated successfully."
+
+# Step 3: Ensure pip is up to date
+echo "⏳ Upgrading pip..."
+if pip install --upgrade pip --quiet; then
+    echo "✅ Pip upgraded successfully."
 else
-    echo "Virtual environment already exists at $VENV_DIR. Skipping creation."
+    echo "❌ Error: Failed to upgrade pip." >&2
+    deactivate
+    exit 1
 fi
 
-# Activate the virtual environment and install dependencies
-source "$VENV_DIR/bin/activate"
-echo "Installing required libraries in the virtual environment..."
-pip install requests regex argparse colorama beautifulsoup4 pyfiglet rich
+# Step 4: Display a progress bar during installation
+echo "Installing dependencies..."
+progress_bar 5
 
-# Set up a symbolic link to the Vulnity main script in a global directory
-VULNITY_PATH="$PWD/main.py"
-BIN_DIR="$HOME/.local/bin"
-
-# Ensure the bin directory exists
-mkdir -p "$BIN_DIR"
-ln -sf "$VULNITY_PATH" "$BIN_DIR/vulnity"
-
-# Add $BIN_DIR to PATH in .zshrc if not already there
-ZSHRC="$HOME/.zshrc"
-if ! grep -q "$BIN_DIR" "$ZSHRC"; then
-    echo "export PATH=\"\$PATH:$BIN_DIR\"" >> "$ZSHRC"
-    echo "Added $BIN_DIR to PATH in $ZSHRC"
+# Step 5: Install required packages
+if pip install requests pyfiglet colorama rich --quiet; then
+    echo "✅ Dependencies installed successfully."
 else
-    echo "$BIN_DIR is already in your PATH."
+    echo "❌ Error: Failed to install dependencies." >&2
+    deactivate
+    exit 1
 fi
 
-echo "Installation complete. Open a new terminal session or manually run 'source ~/.zshrc' to enable 'vulnity' command globally."
+echo "🎉 Setup completed successfully!"
