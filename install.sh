@@ -1,51 +1,82 @@
 #!/bin/zsh
 
+# Function to display a spinner
+spinner() {
+    local pid=$!
+    local spin=('|' '/' '-' '\\')
+    while kill -0 $pid 2>/dev/null; do
+        for s in "${spin[@]}"; do
+            printf "\r[%s] %s" "$s" "$1"
+            sleep 0.1
+        done
+    done
+    printf "\r\033[K" # Clear spinner line
+}
+
 # Function to display a progress bar
 progress_bar() {
     local duration=$1
     for ((i=0; i<=100; i+=2)); do
-        printf "\r[%-50s] %d%%" "$(printf '#%.0s' $(seq 1 $((i / 2))))" "$i"
+        printf "\r\033[1;34m[%-50s]\033[1;33m %d%%\033[0m" "$(printf '#%.0s' $(seq 1 $((i / 2))))" "$i"
         sleep $((duration / 50))
     done
     echo
 }
 
-echo "Setting up Python virtual environment..."
+clear
+echo "\033[1;35m$ascii_art\033[0m"
+echo "\033[1;32m✨ Welcome to the Vulnity Setup ✨\033[0m"
 
 # Step 1: Create a virtual environment
-if python3 -m venv vuln; then
-    echo "✅ Virtual environment created successfully."
+echo "\033[1;34m🔧 Creating Python virtual environment...\033[0m"
+python3 -m venv vuln & spinner "Creating virtual environment"
+if [[ $? -eq 0 ]]; then
+    echo "\033[1;32m✅ Virtual environment created successfully.\033[0m"
 else
-    echo "❌ Error: Failed to create a virtual environment." >&2
+    echo "\033[1;31m❌ Error: Failed to create a virtual environment.\033[0m" >&2
     exit 1
 fi
 
 # Step 2: Activate the virtual environment
+echo "\033[1;34m🔗 Activating the virtual environment...\033[0m"
 source vuln/bin/activate
-echo "✅ Virtual environment activated successfully."
+if [[ $? -eq 0 ]]; then
+    echo "\033[1;32m✅ Virtual environment activated successfully.\033[0m"
+else
+    echo "\033[1;31m❌ Error: Failed to activate the virtual environment.\033[0m"
+    exit 1
+fi
 
 # Step 3: Ensure pip is up to date
-echo "⏳ Upgrading pip..."
-if pip install --upgrade pip --quiet; then
-    echo "✅ Pip upgraded successfully."
+echo "\033[1;34m⏳ Upgrading pip...\033[0m"
+pip install --upgrade pip --quiet & spinner "Upgrading pip"
+if [[ $? -eq 0 ]]; then
+    echo "\033[1;32m✅ Pip upgraded successfully.\033[0m"
 else
-    echo "❌ Error: Failed to upgrade pip." >&2
+    echo "\033[1;31m❌ Error: Failed to upgrade pip.\033[0m"
     deactivate
     exit 1
 fi
 
 # Step 4: Display a progress bar during installation
-echo "Installing dependencies..."
+echo "\033[1;34m📦 Installing dependencies...\033[0m"
 progress_bar 5
 
 # Step 5: Install required packages
-pip install requests pyfiglet colorama rich --quiet
-    echo "✅ Dependencies installed successfully."
+pip install requests pyfiglet colorama rich --quiet & spinner "Installing dependencies"
+if [[ $? -eq 0 ]]; then
+    echo "\033[1;32m✅ Dependencies installed successfully.\033[0m"
+else
+    echo "\033[1;31m❌ Error: Failed to install dependencies.\033[0m"
+    deactivate
+    exit 1
+fi
 
-touch run.sh | echo "python3 main.py" > run.sh
+# Step 6: Add run script
+echo "\033[1;34m📝 Adding run script...\033[0m"
+echo "python3 main.py" > run.sh
 chmod 777 run.sh
-echo "Run script added: Do ./run.sh"
-source vuln/bin/activate
-exec zsh
+echo "\033[1;32m✅ Run script added: Do ./run.sh\033[0m"
 
-echo "🎉 Setup completed successfully!"
+# Wrap up
+echo "\033[1;35m🎉 Setup completed successfully! Enjoy using Vulnity!\033[0m"
