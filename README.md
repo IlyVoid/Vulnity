@@ -45,7 +45,7 @@ To run Vulnity, navigate to the directory containing the install.sh file and exe
 ```
 then run 
 ```bash
-    vulnity
+    ./run.sh
 ```
 You will be prompted to choose between test running or viewing reports.
 
@@ -60,6 +60,12 @@ Available Tests
     7. HTTP Header Injection
 
 After the scan completes, a report will be generated and saved in the reports folder.
+
+To uninstall run
+```bash
+    ./uninstall.sh
+```
+
 Test Functions
 
 Vulnity includes various test functions to assess common web vulnerabilities:
