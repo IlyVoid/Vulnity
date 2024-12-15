@@ -24,8 +24,7 @@ progress_bar() {
 }
 
 clear
-echo "\033[1;35m$ascii_art\033[0m"
-echo "\033[1;32m✨ Welcome to the Vulnity Setup ✨\033[0m"
+echo "\033[1;35m✨ Welcome to the Vulnity Setup ✨\033[0m"
 
 # Step 1: Create a virtual environment
 echo "\033[1;34m🔧 Creating Python virtual environment...\033[0m"
@@ -72,10 +71,27 @@ else
     exit 1
 fi
 
-# Step 6: Add run script
+# Step 6: Add run script with virtual environment activation
 echo "\033[1;34m📝 Adding run script...\033[0m"
-echo "python3 main.py" > run.sh
-chmod 777 run.sh
+cat << 'EOF' > run.sh
+#!/bin/zsh
+
+# Activate the virtual environment
+source vuln/bin/activate
+
+# Check if the virtual environment was activated
+if [[ "$VIRTUAL_ENV" != "" ]]; then
+    echo "Virtual environment activated."
+else
+    echo "Failed to activate virtual environment. Exiting..."
+    exit 1
+fi
+
+# Run the main script
+python3 main.py
+EOF
+
+chmod +x run.sh
 echo "\033[1;32m✅ Run script added: Do ./run.sh\033[0m"
 
 # Wrap up
